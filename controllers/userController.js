@@ -16,6 +16,8 @@ router.post("/signup",(req,res)=>{
              token:token,
              user:newUser
          })
+    }).catch(err=>{
+        res.status(500).json({msg:"an error occurred",err})
     })
 })
 
@@ -42,6 +44,8 @@ router.post("/login",(req,res)=>[
                 user:foundUser
             })
         }
+    }).catch(err=>{
+        res.status(500).json({msg:"an error occurred",err})
     })
 ])
 router.get("/check-token",(req,res)=>{
@@ -60,14 +64,48 @@ router.get("/user-from-token",(req,res)=>{
         User.findByPk(userData.id,{
             include:[{
                 model:Icon,
-                include:[Pixel]
+                include:[Pixel],
+               
             }]
         }).then(userData=>{
             res.json(userData)
+        }).catch(err=>{
+            res.status(500).json({msg:"an error occurred",err})
         })
     } catch{
       res.status(403).json({msg:"invalid token"})
     }
 })
+router.get("/:id",(req,res)=>{
+        User.findByPk(req.params.id,{
+            include:[{
+                model:Icon,
+                include:[Pixel],
+            }],
+            // order:[[Icon,"createdAt","DESC"],["Icon.Pixel","row"],["Icon.Pixel","col"]],
+        }).then(userData=>{
+            const newIcons = userData.Icons.map(icon=>{
+                icon.Pixels.sort((a,b)=>{
+                    if(a.row<b.row) {
+                        return -1
+                    } else if(a.row>b.row) {
+                        return 1
+                    } else {
+                        if(a.col<b.col){
+                            return -1
+                        } else {
+                            return 1
+                        }
+                    }
+                })
+                return icon
+            })
+            // res.json(newIcons[0].Pixels)
+            res.json({
+                email:userData.email,
+                Icons:newIcons
+            })
+       })
+    })
 
 module.exports = router;
