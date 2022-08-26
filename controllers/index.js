@@ -45,4 +45,19 @@ router.get("/protected",(req,res)=>{
 
 })
 
+router.get("/hello",(req,res)=>{
+    res.json({msg:"hello from express!"})
+})
+
+router.get("/check-token",(req,res)=>{
+    const token = req.headers.authorization.split(" ")[1]
+    try{
+        const userData = jwt.verify(token,process.env.JWT_SECRET)
+        res.json(userData)
+    } catch{
+      res.status(403).json({msg:"invalid token"})
+    }
+
+})
+
 module.exports = router;
